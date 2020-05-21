@@ -1,0 +1,20 @@
+﻿@{
+    // ReSharper disable MustUseReturnValue
+    ViewData["Title"] = "Login Page";
+}
+@* @model object *@
+@* @{ *@
+@*     ViewBag.Title = "title"; *@
+@*     Layout = "_Layout"; *@
+@* } *@
+
+<h2>Login page</h2> <hr />
+
+@model LoginViewModel
+
+<form method="post" asp-controller="Home" asp-action="LoginAction">
+    <input type="text" asp-for="Email" value="@Model.Email" placeholder="E-mail"/>
+    <br/>
+    <input type="Password" asp-for="Password" value="@Model.Password" placeholder="Password"/>
+    <button type="submit">Login</button>
+</form>

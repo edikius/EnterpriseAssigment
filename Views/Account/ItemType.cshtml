@@ -1,0 +1,67 @@
+﻿
+@{
+    ViewData["Title"] = "Add Item Type";
+    var FormIndex = 0;
+}
+}
+@model ItemTypesModel
+
+<h1>Item Types</h1>
+<hr />
+<form method="POST" action="/account/addItemType">
+    <table cellspacing="10">
+        <tr>
+            <th>
+                Item ID
+            </th>
+            <th>
+                Item Category
+            </th>
+            <th>
+                Item Type Name
+            </th>
+            <th>
+                Item Image Link
+            </th>
+        </tr>
+
+        @foreach (var ItemType in Model.ItemTypes)
+        {
+            <tr>
+                <td> @FormIndex @{ FormIndex++;}  </td>
+                <td>
+                    @{
+                        var CategoryName = "None";
+                        foreach (var CategoryFind in Model.CategoryList)
+                        {
+                            if (CategoryFind.CategoryId.ToString() == ItemType.Category) CategoryName = CategoryFind.CategoryName;
+                        }
+                    }
+                    @CategoryName
+                </td>
+
+                <td> @ItemType.Name  </td>
+                <td> @ItemType.Image  </td>
+            </tr>
+        }
+
+        <tr>
+
+            <td> Add new ItemType:  </td>
+            <td>
+                <label for="Category">Choose a category:</label>
+                <select name="Category" id="Category">
+                    @foreach (var Category in Model.CategoryList)
+                    {
+                        <option value="@Category.CategoryId">@Category.CategoryName</option>
+                    }
+                </select>
+            </td>
+            <td> <input type="text" name="Name" placeholder="ItemType Name" /> </td>
+            <td> <input type="text" name="Image" placeholder="Image Link" /> </td>
+
+            <td> <input type="submit" name="submit" value="Add" /> </td>
+
+        </tr>
+    </table>
+</form>
