@@ -13,8 +13,13 @@
 @model LoginViewModel
 
 <form method="post" asp-controller="Home" asp-action="LoginAction">
-    <input type="text" asp-for="Email" value="@Model.Email" placeholder="E-mail"/>
-    <br/>
-    <input type="Password" asp-for="Password" value="@Model.Password" placeholder="Password"/>
-    <button type="submit">Login</button>
+    <input type="text" asp-for="Email" value="admin@gmail.com" placeholder="E-mail" />
+    <br />
+    <input type="Password" asp-for="Password" value="admin123" placeholder="Password" />
+    <button type="submit">Login</button> <hr />
+    <div class="row">
+        <div class="col-md-12">
+            <a asp-action="LoginGitHub" asp-controller="Account" class="btn btn-default">Log In with GitHub</a>
+        </div>
+    </div>
 </form>

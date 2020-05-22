@@ -10,65 +10,66 @@
 <h1>Offers:</h1>
 <hr />
 <form method="POST" action="/account/addItemOffers">
-    <table cellspacing="10">
-        <tr>
-            <th>
-                Product
-            </th>
-            <th>
-                Quantity
-            </th>
-            <th>
-                Quality
-            </th>
-            <th>
-                Price
-            </th>
-        </tr>
-
-        @foreach (var ItemOffer in Model.ItemOffers)
-        {
+    <table cellspacing="10" class="table">
+        <thead class="thead-dark">
             <tr>
-                <td>
-                    @{
-                        var ItemTypeName = "None";
-                        foreach (var ItemFindName in Model.ItemTypeList)
-                        {
-                            if (ItemFindName.ItemTypeId.ToString() == ItemOffer.ItemTypeId) ItemTypeName = ItemFindName.Name;
-                        }
-                    }
-                    @ItemTypeName
-                </td>
-                <td> @ItemOffer.Quantity  </td>
-                <td> @ItemOffer.Quality  </td>
-                <td> @ItemOffer.Price  </td>
+                <th scope="col">
+                    Product
+                </th>
+                <th scope="col">
+                    Quantity
+                </th>
+                <th scope="col">
+                    Quality
+                </th>
+                <th scope="col">
+                    Price
+                </th>
             </tr>
-        }
+        </thead>
+            @foreach (var ItemOffer in Model.ItemOffers)
+            {
+                <tr>
+                    <th scope="row">
+                        @{
+                            var ItemTypeName = "None";
+                            foreach (var ItemFindName in Model.ItemTypeList)
+                            {
+                                if (ItemFindName.ItemTypeId.ToString() == ItemOffer.ItemTypeId) ItemTypeName = ItemFindName.Name;
+                            }
+                        }
+                        @ItemTypeName
+                    </th>
+                    <td> @ItemOffer.Quantity  </td>
+                    <td> @ItemOffer.Quality  </td>
+                    <td> @ItemOffer.Price  </td>
+                </tr>
+            }
 
-        <tr>
+            <tr>
 
-            <td>
-                <label for="ItemType">Choose a Item Type:</label>
-                <select name="ItemTypeId" id="ItemType">
-                    @foreach (var ItemType in Model.ItemTypeList)
-                    {
-                        <option value="@ItemType.ItemTypeId">@ItemType.Name</option>
-                    }
-                </select>
-            </td>
-            <td> <input type="text" name="Quantity" placeholder="Quantity" /> </td>
-            <td>
-                <label for="Quality">Choose a Quality:</label>
-                <select name="Quality" id="Quality">
-                    <option value="Excellent">Excellent</option>
-                    <option value="Good">Good</option>
-                    <option value="Poor">Poor</option>
-                    <option value="Bad">Bad</option>
-                </select>
-            </td>
-            <td> <input type="text" name="Price" placeholder="Price" /> </td>
-            <td> <input type="submit" name="submit" value="Add" /> </td>
+                <td scope="row">
+                    <label for="ItemType">Choose a Item Type:</label>
+                    <select name="ItemTypeId" id="ItemType">
+                        @foreach (var ItemType in Model.ItemTypeList)
+                        {
+                            <option value="@ItemType.ItemTypeId">@ItemType.Name</option>
+                        }
+                    </select>
+                </td>
+                <td> <input type="text" name="Quantity" placeholder="Quantity" /> </td>
+                <td>
+                    <label for="Quality">Choose a Quality:</label>
+                    <select name="Quality" id="Quality">
+                        <option value="Excellent">Excellent</option>
+                        <option value="Good">Good</option>
+                        <option value="Poor">Poor</option>
+                        <option value="Bad">Bad</option>
+                    </select>
+                </td>
+                <td> <input type="text" name="Price" placeholder="Price" /> </td>
+                <td> <input type="submit" name="submit" value="Add" /> </td>
 
-        </tr>
+            </tr>
     </table>
 </form>

@@ -15,6 +15,16 @@ using Microsoft.AspNetCore.Identity;
 using ItemStoreProject.Persistence.Entities;
 using Microsoft.AspNetCore.Http;
 using ItemStoreProject.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.OAuth;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text.Json;
+using Newtonsoft.Json.Linq;
+using Microsoft.AspNet.Identity;
+using ItemStoreProject.Controllers;
 
 namespace ItemStoreProject
 {
@@ -36,32 +46,6 @@ namespace ItemStoreProject
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(config.ConnectionStrings.Database));
 
-            //services.Configure<IdentityOptions>(options =>
-            //{
-            //    // Password settings.
-            //    options.Password.RequireDigit = true;
-            //    options.Password.RequireLowercase = true;
-            //    options.Password.RequireNonAlphanumeric = true;
-            //    options.Password.RequireUppercase = true;
-            //    options.Password.RequiredLength = 6;
-            //    options.Password.RequiredUniqueChars = 1;
-
-            //    // Lockout settings.
-            //    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-            //    options.Lockout.MaxFailedAccessAttempts = 5;
-            //    options.Lockout.AllowedForNewUsers = true;
-
-            //    // User settings.
-            //    options.User.AllowedUserNameCharacters =
-            //    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-            //    options.User.RequireUniqueEmail = false;
-            //});
-            //IConfigurationSection identityDefaultOptionsConfigurationSection = Configuration.GetSection("IdentityDefaultOptions");
-
-            //services.Configure<IdentityDefaultOptionsModel>(identityDefaultOptionsConfigurationSection);
-
-            //var identityDefaultOptions = identityDefaultOptionsConfigurationSection.Get<IdentityDefaultOptionsModel>();
-
             services.ConfigureApplicationCookie(options =>
             {
                 // Cookie settings
@@ -78,18 +62,57 @@ namespace ItemStoreProject
                 x.Password.RequireNonAlphanumeric = false;
                 x.Password.RequireUppercase = false;
             }).AddRoles<IdentityRole>()
-               .AddRoleManager<RoleManager<IdentityRole>>()
+               //.AddRoleManager<RoleManager<IdentityRole>>()
                .AddDefaultTokenProviders()
                .AddEntityFrameworkStores<AppDbContext>();
 
-            
 
-            services.AddAuthorization(options =>
+
+            services.AddAuthentication(options =>
             {
-                options.AddPolicy("RequireAdministratorRole",
-                     policy => policy.RequireRole("Administrator"));
-            });
+                options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = "GitHub";
+            })
+            .AddCookie()
+            .AddOAuth("GitHub", options =>
+            {
+                options.ClientId = Configuration["GitHub:ClientId"];
+                options.ClientSecret = Configuration["GitHub:ClientSecret"];
+                options.CallbackPath = new PathString("/signin-github");
 
+                options.AuthorizationEndpoint = "https://github.com/login/oauth/authorize";
+                options.TokenEndpoint = "https://github.com/login/oauth/access_token";
+                options.UserInformationEndpoint = "https://api.github.com/user";
+
+                options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "id");
+                options.ClaimActions.MapJsonKey(ClaimTypes.Name, "name");
+                options.ClaimActions.MapJsonKey("urn:github:login", "login");
+
+                options.Events = new OAuthEvents
+                {
+                    OnCreatingTicket = async (context) =>
+                    {
+                        var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
+                        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
+
+                        var response = await context.Backchannel.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, context.HttpContext.RequestAborted);
+                        response.EnsureSuccessStatusCode();
+
+                        var userData = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(await response.Content.ReadAsStringAsync());
+                        var user = JObject.Parse(await response.Content.ReadAsStringAsync());
+                        Console.WriteLine(user);
+                        var userModel = new User()
+                        {
+                            Email = user["email"].ToString(),
+                            UserName = user["login"].ToString()
+                        };
+                        
+                        context.RunClaimActions(userData);
+                    }
+                };
+            });
             services.AddControllersWithViews();
         }
 

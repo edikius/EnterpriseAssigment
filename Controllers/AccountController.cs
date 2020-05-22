@@ -1,4 +1,6 @@
-﻿using ItemStoreProject.Models;
+﻿using Dropbox.Api;
+using Dropbox.Api.Files;
+using ItemStoreProject.Models;
 using ItemStoreProject.Persistence;
 using ItemStoreProject.Persistence.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -10,6 +12,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Web;
+using System.Net;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authentication;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace ItemStoreProject.Controllers
 {
@@ -82,7 +90,7 @@ namespace ItemStoreProject.Controllers
 
         [Authorize]
         [HttpGet("ItemType")]
-        [HttpGet("ItemOffers/error/{errorMessage?}")]
+        [HttpGet("ItemType/error/{errorMessage?}")]
         public IActionResult itemtype(string errorMessage)
         {
 
@@ -99,6 +107,7 @@ namespace ItemStoreProject.Controllers
                 return View(ItemTypes);
             }
         }
+        [ValidateAntiForgeryToken]
         [Authorize]
         [HttpPost("addItemType")]
         public async Task<IActionResult> addItemType(ItemType model)
@@ -110,6 +119,34 @@ namespace ItemStoreProject.Controllers
                      .Select(e => e.ErrorMessage));
                 return Redirect("/account/itemtype/error/" + errorList);
             }
+            if (model.FormFile == null)
+            {
+                return Redirect("/account/itemtype/error/Image can't be null");
+            }
+
+            var accessToken = "0OTdDUENbUAAAAAAAAAADs1bfaPGMkByrSdSxnaPd1vAVCwcjEt3k7YGBSb-spGI";
+            var ApplicationName = "EnterpriseProgrammingAndrzejNiemiec";
+            using (DropboxClient client = new DropboxClient(accessToken, new DropboxClientConfig(ApplicationName)))
+            {
+
+                string[] spitInputFileName = model.FormFile.FileName.Split(new string[] { "\\" }, StringSplitOptions.RemoveEmptyEntries);
+                string fileNameAndExtension = spitInputFileName[spitInputFileName.Length - 1];
+
+                string[] fileNameAndExtensionSplit = fileNameAndExtension.Split('.');
+                string originalFileName = fileNameAndExtensionSplit[0];
+                string originalExtension = fileNameAndExtensionSplit[1];
+
+                string fileName = @"/Images/" + originalFileName + Guid.NewGuid().ToString().Replace("-", "") + "." + originalExtension;
+
+                var updated = client.Files.UploadAsync(
+                    fileName,
+                    mode: WriteMode.Overwrite.Overwrite.Instance,
+                    body: model.FormFile.OpenReadStream()).Result;
+
+                var result = client.Sharing.CreateSharedLinkWithSettingsAsync(fileName).Result;
+                model.Image = result.Url.Replace("?dl=0", "?raw=1");
+            }
+
 
             _dbContext.ItemType.Add(model);
             _dbContext.SaveChanges();
@@ -235,6 +272,11 @@ namespace ItemStoreProject.Controllers
             }
         }
 
+        [HttpGet("sigin-github")]
+        public async Task<IActionResult> LoginGitHubAsync(string returnUrl = "/")
+        {
+            return Challenge(new AuthenticationProperties() { RedirectUri = returnUrl });
+        }
         [HttpGet("Login")]
         public IActionResult Login()
         {

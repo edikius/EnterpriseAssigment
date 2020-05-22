@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -18,9 +19,10 @@ namespace ItemStoreProject.Persistence.Entities
         public string Category { get; set; }
         [Required(ErrorMessage = "Name is Required")]
         public string Name { get; set; }
-        [Required(ErrorMessage = "Image is Required")]
         public string Image { get; set; }
-
+        [NotMappedAttribute]
+        [Display(Name = "File")]
+        public IFormFile FormFile { get; set; }
 
 
     }

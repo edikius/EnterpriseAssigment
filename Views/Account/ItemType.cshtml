@@ -3,12 +3,13 @@
     ViewData["Title"] = "Add Item Type";
     var FormIndex = 0;
 }
-}
+
 @model ItemTypesModel
 
 <h1>Item Types</h1>
 <hr />
-<form method="POST" action="/account/addItemType">
+<form method="POST" action="/account/addItemType" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
     <table cellspacing="10">
         <tr>
             <th>
@@ -41,7 +42,7 @@
                 </td>
 
                 <td> @ItemType.Name  </td>
-                <td> @ItemType.Image  </td>
+                <td> <img style=" height: 100px;" src='@Url.Content(Url.Content(ItemType.Image))' />  </td>
             </tr>
         }
 
@@ -58,7 +59,7 @@
                 </select>
             </td>
             <td> <input type="text" name="Name" placeholder="ItemType Name" /> </td>
-            <td> <input type="text" name="Image" placeholder="Image Link" /> </td>
+            <td> <input type="file" name="FormFile" placeholder="Image Link" /> </td>
 
             <td> <input type="submit" name="submit" value="Add" /> </td>
 
